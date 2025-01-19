@@ -1,0 +1,72 @@
+import serial
+import time
+
+#change your serial port to "ttyS0" if you are using a rs232 connection
+SERIAL_PORT = '/dev/ttyUSB0'  
+
+BAUD_RATE = 9600             
+TIMEOUT = 5                   
+
+
+
+def send_command(command, serial_connection):
+    serial_connection.write(command.encode() + b'\r')  
+    time.sleep(2)  
+    output = serial_connection.read(serial_connection.inWaiting())  
+    return output.decode('utf-8')  
+
+
+serial_connection = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=TIMEOUT)
+print(f"Connected to {SERIAL_PORT} at {BAUD_RATE} baud rate")
+
+
+time.sleep(2)
+
+
+try:
+    
+    print("Sending commands to switch...")
+
+  
+    output = send_command('enable', serial_connection)
+    if ENABLE_PASSWORD:
+        print("Entering enable password...")
+        output = send_command(ENABLE_PASSWORD, serial_connection)
+    
+  
+
+   
+    print("Fetching MAC Address Table...")
+    mac_table = send_command('show mac address-table', serial_connection)
+    with open("mac_address_table.txt", "w") as mac_file:
+        mac_file.write(mac_table)
+    print("MAC Address Table saved to mac_address_table.txt")
+
+   
+    print("Fetching VLAN Information...")
+    vlan_info = send_command('show vlan brief', serial_connection)
+    with open("vlan_information.txt", "w") as vlan_file:
+        vlan_file.write(vlan_info)
+    print("VLAN Information saved to vlan_information.txt")
+
+   
+    print("Fetching Interface Status...")
+    interface_status = send_command('show interfaces status', serial_connection)
+    with open("interface_status.txt", "w") as interface_file:
+        interface_file.write(interface_status)
+    print("Interface Status saved to interface_status.txt")
+
+   
+    print("Fetching Routing Table...")
+    routing_table = send_command('show ip route', serial_connection)
+    with open("routing_table.txt", "w") as route_file:
+        route_file.write(routing_table)
+    print("Routing Table saved to routing_table.txt")
+
+except Exception as e:
+    print(f"Error: {e}")
+
+finally:
+   
+    serial_connection.close()
+    print("Connection closed.")
